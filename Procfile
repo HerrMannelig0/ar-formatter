@@ -1,0 +1,1 @@
+web: java -jar target/ARFormatter-1.0-SNAPSHOT.jar
