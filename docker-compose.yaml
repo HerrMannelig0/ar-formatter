@@ -1,0 +1,12 @@
+version: '2'
+services:
+  formatter:
+    container_name: formatter
+    image: formatter:latest
+    ports:
+      - 8083:8081
+    networks:
+      - my-network
+networks:
+  my-network:
+    driver: bridge
