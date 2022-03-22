@@ -1,5 +1,7 @@
 package arformatter.writer;
 
+import arformatter.formatter.NameProvider;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import java.io.BufferedWriter;
@@ -12,28 +14,19 @@ import java.util.List;
 @Component
 public class WordWriter {
 
-    private static final DateTimeFormatter FORMATTER = DateTimeFormatter.ofPattern("yyyMMdd_HHmmss");
+    private NameProvider nameProvider;
 
-    public void write(List<String> names, String directory) {
-        try (BufferedWriter writer = new BufferedWriter(new FileWriter(createName(directory)))) {
+    @Autowired
+    public WordWriter(NameProvider nameProvider) {
+        this.nameProvider = nameProvider;
+    }
+
+    public void write(List<String> names) {
+        try (BufferedWriter writer = new BufferedWriter(new FileWriter("src/main/resources/abc.txt"))) {
             names.forEach(name -> writeName(writer, name));
         } catch (IOException e) {
             throw new FileWritingException("Error during writing to file", e);
         }
-    }
-
-    private String createName(String directory) {
-        return defaultIfEmpty(directory) + "/format_" + getActualTimeFormatted() + ".txt";
-    }
-
-    private String defaultIfEmpty(String directory) {
-        return directory == null || "".equals(directory) ?
-                "saved" :
-                directory;
-    }
-
-    private String getActualTimeFormatted() {
-        return FORMATTER.format(LocalDateTime.now());
     }
 
     private void writeName(BufferedWriter writer, String name) {

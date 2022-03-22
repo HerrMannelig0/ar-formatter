@@ -1,5 +1,6 @@
 package arformatter.controller;
 
+import arformatter.downloader.DownloadController;
 import arformatter.formatter.WordFormatter;
 import arformatter.reader.WordReader;
 import arformatter.writer.WordWriter;
@@ -12,6 +13,8 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.multipart.MultipartFile;
 
+import javax.servlet.http.HttpServletResponse;
+import java.io.IOException;
 import java.util.List;
 
 @Controller
@@ -21,20 +24,21 @@ public class StartController {
     private final WordFormatter wordFormatter;
     private final WordWriter wordWriter;
 
-    public StartController(@Autowired WordReader wordReader,
-                           @Autowired WordFormatter wordFormatter,
-                           @Autowired WordWriter wordWriter) {
+    @Autowired
+    public StartController(WordReader wordReader,
+                           WordFormatter wordFormatter,
+                           WordWriter wordWriter) {
         this.wordReader = wordReader;
         this.wordFormatter = wordFormatter;
         this.wordWriter = wordWriter;
     }
 
     @PostMapping("/")
-    public ResponseEntity<List<String>> handleForm(@RequestParam("namesFile") MultipartFile file,
-                                                   @RequestParam("directoryName") String directory) {
+    public ResponseEntity<List<String>> handleForm(HttpServletResponse response, @RequestParam("namesFile") MultipartFile file) throws IOException {
         List<String> lines = wordReader.read(file);
         List<String> formattedNames = wordFormatter.format(lines);
-        wordWriter.write(formattedNames, directory);
+        wordWriter.write(formattedNames);
+        DownloadController.download1(response, "abc.txt");
         return ResponseEntity.ok().body(formattedNames);
     }
 

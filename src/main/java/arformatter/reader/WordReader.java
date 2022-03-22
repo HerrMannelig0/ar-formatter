@@ -12,9 +12,9 @@ import java.util.List;
 @Component
 public class WordReader {
 
-    public List<String> read(MultipartFile file)  {
+    public List<String> read(MultipartFile file) {
         List<String> lines = new LinkedList<>();
-        try(BufferedReader reader = new BufferedReader(new InputStreamReader(file.getInputStream()))) {
+        try (BufferedReader reader = new BufferedReader(new InputStreamReader(file.getInputStream()))) {
             while (reader.ready()) {
                 lines.add(reader.readLine());
             }
