@@ -15,11 +15,11 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.multipart.MultipartFile;
+import org.springframework.web.servlet.view.RedirectView;
 
 import javax.servlet.http.HttpServletResponse;
 import java.io.File;
 import java.io.IOException;
-import java.util.List;
 
 @Controller
 public class StartController {
@@ -46,7 +46,7 @@ public class StartController {
     }
 
     @PostMapping("/")
-    public ResponseEntity<List<String>> handleForm(HttpServletResponse response, @RequestParam("namesFile") MultipartFile file) throws IOException {
+    public ResponseEntity<String> handleForm(HttpServletResponse response, @RequestParam("namesFile") MultipartFile file) throws IOException {
         LOGGER.info("Formatting data from file {}", file.getOriginalFilename());
         var lines = wordReader.read(file);
         var formattedNames = wordFormatter.format(lines);
@@ -54,7 +54,7 @@ public class StartController {
         wordWriter.write(formattedNames, outputFile);
         fileDownloader.download(response, outputFile);
         fileCleaner.clean(outputFile);
-        return ResponseEntity.ok().body(formattedNames);
+        return ResponseEntity.ok(formattedNames.toString());
     }
 
     @GetMapping("/")
