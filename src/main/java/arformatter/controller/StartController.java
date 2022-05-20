@@ -1,9 +1,12 @@
 package arformatter.controller;
 
-import arformatter.downloader.DownloadController;
+import arformatter.cleaner.FileCleaner;
+import arformatter.downloader.FileDownloader;
 import arformatter.formatter.WordFormatter;
 import arformatter.reader.WordReader;
 import arformatter.writer.WordWriter;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
@@ -14,31 +17,43 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.multipart.MultipartFile;
 
 import javax.servlet.http.HttpServletResponse;
+import java.io.File;
 import java.io.IOException;
 import java.util.List;
 
 @Controller
 public class StartController {
 
+    private static final Logger LOGGER = LoggerFactory.getLogger(StartController.class);
+
     private final WordReader wordReader;
     private final WordFormatter wordFormatter;
     private final WordWriter wordWriter;
+    private final FileDownloader fileDownloader;
+    private final FileCleaner fileCleaner;
 
     @Autowired
     public StartController(WordReader wordReader,
                            WordFormatter wordFormatter,
-                           WordWriter wordWriter) {
+                           WordWriter wordWriter,
+                           FileDownloader fileDownloader,
+                           FileCleaner fileCleaner) {
         this.wordReader = wordReader;
         this.wordFormatter = wordFormatter;
         this.wordWriter = wordWriter;
+        this.fileDownloader = fileDownloader;
+        this.fileCleaner = fileCleaner;
     }
 
     @PostMapping("/")
     public ResponseEntity<List<String>> handleForm(HttpServletResponse response, @RequestParam("namesFile") MultipartFile file) throws IOException {
-        List<String> lines = wordReader.read(file);
-        List<String> formattedNames = wordFormatter.format(lines);
-        wordWriter.write(formattedNames);
-        DownloadController.download1(response, "abc.txt");
+        LOGGER.info("Formatting data from file {}", file.getOriginalFilename());
+        var lines = wordReader.read(file);
+        var formattedNames = wordFormatter.format(lines);
+        var outputFile = new File("src/main/resources/" + "formatted_" + file.getOriginalFilename());
+        wordWriter.write(formattedNames, outputFile);
+        fileDownloader.download(response, outputFile);
+        fileCleaner.clean(outputFile);
         return ResponseEntity.ok().body(formattedNames);
     }
 
